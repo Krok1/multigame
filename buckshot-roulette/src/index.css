@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Buckshot Roulette Dark Theme */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 84% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 85%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 84% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 0 84% 55%;
+
+    --radius: 0.75rem;
+
+    /* Game specific colors */
+    --danger: 0 84% 55%;
+    --danger-foreground: 0 0% 100%;
+    --safe: 120 100% 25%;
+    --safe-foreground: 0 0% 100%;
+    --warning: 45 100% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    /* Atmospheric effects */
+    --blood-red: 0 100% 20%;
+    --shadow-dark: 0 0% 0%;
+    --metal-gray: 0 0% 25%;
+    
+    /* Gradients */
+    --gradient-blood: linear-gradient(135deg, hsl(0 84% 55%), hsl(0 100% 20%));
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 8%), hsl(0 0% 4%));
+    --gradient-metal: linear-gradient(145deg, hsl(0 0% 25%), hsl(0 0% 15%));
+
+    /* Shadows */
+    --shadow-glow: 0 0 30px hsl(0 84% 55% / 0.3);
+    --shadow-deep: 0 10px 30px -10px hsl(0 0% 0% / 0.8);
+    --shadow-inset: inset 0 2px 8px hsl(0 0% 0% / 0.5);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Mobile optimization */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Mobile touch optimizations */
+  button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Disable text selection on UI elements */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приєднання до гри - BlackJack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🃏 BlackJack</h1>
+            <div class="game-info">Приєднання до гри</div>
+        </div>
+
+        <div id="joinContent" class="loading">
+            Завантаження...
+        </div>
+    </div>
+
+    <script>
+        const chatId = {{ chat_id }};
+        let gameJoined = false;
+        let tgWebApp = null;
+
+        // Ініціалізація Telegram WebApp
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ініціалізуємо Telegram WebApp якщо доступний
+            if (window.Telegram && window.Telegram.WebApp) {
+                tgWebApp = window.Telegram.WebApp;
+                tgWebApp.ready();
+                tgWebApp.expand();
+            }
+            
+            loadGameInfo();
+        });
+
+        async function loadGameInfo() {
+            try {
+                console.log(`Loading session info for chat_id: ${chatId}`);
+                const response = await fetch(`/api/sessions/${chatId}`);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    console.error('Response not ok:', response.status, response.statusText);
+                    showError(`Помилка сервера: ${response.status} ${response.statusText}`);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Session data:', data);
+                
+                if (data.error) {
+                    console.error('API error:', data.error);
+                    showError(`Сесія не знайдена: ${data.error}`);
+                    return;
+                }
+                
+                if (!data.session) {
+                    console.error('No session in response');
+                    showError('Неочікувана помилка: немає даних сесії');
+                    return;
+                }
+                
+                const session = data.session;
+                displaySessionInfo(session);
+            } catch (error) {
+                console.error('Load session error:', error);
+                showError(`Помилка завантаження: ${error.message}`);
+            }
+        }
+
+        function displaySessionInfo(session) {
+            if (session.status === 'closed') {
+                // Сесія закрита
+                document.getElementById('joinContent').innerHTML = `
+                    <div class="status-message error">
+                        <h3>❌ Сесія закрита</h3>
+                        <p>Ця ігрова сесія була закрита.</p>
+                        <p><strong>Створив:</strong> ${session.creator_username}</p>
+                        <p><strong>Закрита:</strong> ${new Date(session.finished_at).toLocaleString('uk-UA')}</p>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="btn btn-secondary" onclick="goBack()">
+                            🔙 Повернутися
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            if (session.player2_id) {
+                // Сесія вже заповнена
+                document.getElementById('joinContent').innerHTML = `
+                    <div class="status-message error">
+                        <h3>❌ Сесія недоступна</h3>
+                        <p>Ця сесія вже заповнена або гра триває.</p>
+                        <p><strong>Гравці:</strong></p>
+                        <p>👤 ${session.creator_username}</p>
+                        <p>👤 ${session.player2_username}</p>
+                        <p><strong>Статус:</strong> ${getStatusText(session.status)}</p>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="btn btn-secondary" onclick="goBack()">
+                            🔙 Повернутися
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Можна приєднатися до сесії
+            const modeText = session.game_mode === 'test' ? 'Тестовий режим' : 'Режим на гроші';
+            const currency = session.game_mode === 'test' ? 'монет' : 'TON';
+            
+            document.getElementById('joinContent').innerHTML = `
+                <div class="status-message">
+                    <h3>🎮 Приєднання до сесії</h3>
+                    <p><strong>Створив:</strong> ${session.creator_username}</p>
+                    <p><strong>Режим:</strong> ${modeText}</p>
+                    <p><strong>Ставка:</strong> ${session.stake} ${currency}</p>
+                    <p><strong>Створена:</strong> ${new Date(session.created_at).toLocaleString('uk-UA')}</p>
+                    <p>Введіть ваше ім'я для приєднання до сесії:</p>
+                </div>
+                
+                <div class="controls" style="margin-bottom: 20px;">
+                    <input type="text" id="usernameInput" placeholder="Ваше ім'я" 
+                           style="padding: 15px; font-size: 1.1em; border-radius: 10px; border: 2px solid #4CAF50; 
+                                  margin-right: 10px; background: rgba(255,255,255,0.1); color: white; width: 200px;">
+                    <button class="btn" onclick="joinSession()">
+                        ✅ Приєднатися
+                    </button>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="goBack()">
+                        🔙 Повернутися
+                    </button>
+                </div>
+            `;
+            
+            // Focus на поле вводу
+            setTimeout(() => {
+                const input = document.getElementById('usernameInput');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'waiting': return '⏳ Очікування гравців';
+                case 'playing': return '🎮 Гра триває';
+                case 'finished': return '✅ Завершена';
+                case 'closed': return '❌ Закрита';
+                default: return status;
+            }
+        }
+
+        async function joinSession() {
+            if (gameJoined) return;
+            
+            const usernameInput = document.getElementById('usernameInput');
+            const username = usernameInput.value.trim();
+            
+            if (!username) {
+                alert('Будь ласка, введіть ваше ім\'я');
+                usernameInput.focus();
+                return;
+            }
+            
+            gameJoined = true;
+            
+            // Отримуємо дані користувача
+            let userData;
+            if (tgWebApp && tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
+                // Telegram WebApp режим
+                const user = tgWebApp.initDataUnsafe.user;
+                userData = {
+                    user_id: user.id,
+                    username: user.username || user.first_name || username
+                };
+                console.log('Telegram user data:', userData);
+            } else {
+                // Demo режим - генеруємо випадковий user_id
+                userData = {
+                    user_id: Math.floor(Math.random() * 1000000) + 100000,
+                    username: username
+                };
+                console.log('Demo mode user data:', userData);
+            }
+            
+            try {
+                console.log(`Joining session ${chatId} with data:`, userData);
+                
+                const response = await fetch(`/api/sessions/${chatId}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                console.log('Join response status:', response.status);
+                
+                if (!response.ok) {
+                    gameJoined = false;
+                    const errorText = await response.text();
+                    console.error('Join response error:', response.status, errorText);
+                    alert(`Помилка сервера: ${response.status}`);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('Join response data:', data);
+                
+                if (data.error) {
+                    gameJoined = false;
+                    console.error('Join API error:', data.error);
+                    alert('Помилка: ' + data.error);
+                    return;
+                }
+                
+                console.log('Successfully joined session, redirecting...');
+                // Успішно приєдналися - перенаправляємо на гру
+                window.location.href = `/?chat_id=${chatId}`;
+                
+            } catch (error) {
+                gameJoined = false;
+                console.error('Join session error:', error);
+                alert(`Помилка приєднання до сесії: ${error.message}`);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('joinContent').innerHTML = `
+                <div class="status-message error">
+                    <h3>❌ Помилка</h3>
+                    <p>${message}</p>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn" onclick="loadGameInfo()">
+                        🔄 Спробувати знову
+                    </button>
+                    <button class="btn btn-secondary" onclick="goBack()">
+                        🔙 Повернутися
+                    </button>
+                </div>
+            `;
+        }
+
+        function goBack() {
+            history.back();
+        }
+
+        // Обробка Enter в полі вводу
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('usernameInput') === document.activeElement) {
+                joinSession();
+            }
+        });
+    </script>
+</body>
+</html>

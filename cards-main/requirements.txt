@@ -1,0 +1,7 @@
+Flask
+Flask-SQLAlchemy
+requests
+python-telegram-bot
+Werkzeug
+gunicorn
+flask-cors

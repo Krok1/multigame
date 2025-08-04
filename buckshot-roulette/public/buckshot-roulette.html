@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Buckshot Roulette - Telegram WebApp</title>
+    <meta name="description" content="A thrilling game of chance and strategy inspired by Buckshot Roulette">
+    
+    <!-- Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom styles for Buckshot Roulette theme */
+        :root {
+            --bg-dark: #141414;
+            --bg-card: rgba(31, 31, 31, 0.9);
+            --text-light: #f0f0f0;
+            --text-muted: #888888;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --safe: #16a34a;
+            --border: #333333;
+        }
+        
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23003300" opacity="0.3"/></svg>');
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .font-creepster {
+            font-family: 'Creepster', cursive;
+        }
+        
+        .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { 
+                text-shadow: 0 0 10px rgba(220, 38, 38, 0.3); 
+            }
+            50% { 
+                text-shadow: 0 0 30px rgba(220, 38, 38, 0.8); 
+            }
+        }
+        
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+            color: white;
+            border: 1px solid rgba(220, 38, 38, 0.5);
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: black;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+        }
+        
+        .btn-warning:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-item {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            border: 1px solid var(--warning);
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+        
+        .btn-item:hover:not(:disabled) {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .health-heart {
+            font-size: 24px;
+            margin: 0 2px;
+        }
+        
+        .shell-count {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .player-card {
+            transition: all 0.3s ease;
+        }
+        
+        .player-active {
+            border-color: var(--danger) !important;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        .handcuffed::after {
+            content: ' 🔒';
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+        }
+        
+        .text-center { text-align: center; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .p-4 { padding: 16px; }
+        .text-danger { color: var(--danger); }
+        .text-muted { color: var(--text-muted); }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .btn {
+                padding: 16px 20px;
+                font-size: 16px;
+                min-height: 60px;
+            }
+            
+            .btn-item {
+                min-height: 50px;
+            }
+            
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game" class="min-h-screen p-4">
+        <!-- Game will be rendered here -->
+    </div>
+
+    <!-- Audio elements for sound effects -->
+    <audio id="shotSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBS2F0OzBdSsFKILZ8D2QQAULXrTn66hVFApGn+DyvmwhBS2F0OzBdSsFKILZ8D" type="audio/wav">
+    </audio>
+    
+    <script>
+        // Initialize Telegram WebApp
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Get user data
+            const user = tg.initDataUnsafe?.user;
+            console.log('Telegram user:', user);
+        }
+
+        // Game state
+        let gameState = {
+            players: [
+                { id: '1', name: 'Player 1', health: 3, bonuses: [], isHandcuffed: false },
+                { id: '2', name: 'Player 2', health: 3, bonuses: [], isHandcuffed: false }
+            ],
+            currentPlayer: 0,
+            shells: [],
+            currentShell: 0,
+            gamePhase: 'playing',
+            winner: null,
+            knifeBonusActive: false,
+            lastAction: '',
+            round: 1,
+            maxRounds: 5
+        };
+
+        // Bonus types
+        const bonusInfo = {
+            magnifying: { icon: '🔍', name: 'Magnifying Glass' },
+            beer: { icon: '🍺', name: 'Beer' },
+            handcuffs: { icon: '⛓️', name: 'Handcuffs' },
+            cigarettes: { icon: '🚬', name: 'Cigarettes' },
+            knife: { icon: '🔪', name: 'Knife' }
+        };
+
+        // Initialize game
+        function initGame() {
+            // Generate shells (3-8 total, at least 1 live and 1 blank)
+            const shellCount = Math.floor(Math.random() * 6) + 3;
+            const liveCount = Math.floor(Math.random() * (shellCount - 1)) + 1;
+            const blankCount = shellCount - liveCount;
+            
+            const shells = [
+                ...Array(liveCount).fill('live'),
+                ...Array(blankCount).fill('blank')
+            ];
+            
+            // Shuffle shells
+            for (let i = shells.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shells[i], shells[j]] = [shells[j], shells[i]];
+            }
+            
+            gameState.shells = shells;
+            
+            // Generate bonuses for each player
+            gameState.players.forEach(player => {
+                const bonusTypes = ['magnifying', 'beer', 'handcuffs', 'cigarettes', 'knife'];
+                const bonusCount = Math.floor(Math.random() * 2) + 2; // 2-3 bonuses
+                player.bonuses = [];
+                
+                for (let i = 0; i < bonusCount; i++) {
+                    const randomType = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
+                    player.bonuses.push({ type: randomType, used: false });
+                }
+            });
+            
+            // Set player names from Telegram if available
+            if (tg?.initDataUnsafe?.user) {
+                gameState.players[0].name = tg.initDataUnsafe.user.first_name || 'Player 1';
+            }
+        }
+
+        // Play sound effect
+        function playSound() {
+            try {
+                const audio = document.getElementById('shotSound');
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+
+        // Show toast notification
+        function showToast(title, message, type = 'default') {
+            // Simple toast implementation
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'danger' ? 'var(--danger)' : 'var(--bg-card)'};
+                color: white;
+                padding: 12px 16px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.innerHTML = `<strong>${title}</strong><br>${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        // Use bonus
+        function useBonus(bonusIndex) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const bonus = currentPlayer.bonuses[bonusIndex];
+            
+            if (bonus.used) return;
+            
+            switch (bonus.type) {
+                case 'magnifying':
+                    const shellType = gameState.shells[gameState.currentShell];
+                    showToast('Shell Revealed', `Current shell is: ${shellType.toUpperCase()}`, shellType === 'live' ? 'danger' : 'default');
+                    break;
+                    
+                case 'beer':
+                    if (gameState.currentShell < gameState.shells.length) {
+                        const ejectedShell = gameState.shells[gameState.currentShell];
+                        gameState.currentShell++;
+                        gameState.lastAction = `Ejected ${ejectedShell} shell`;
+                        showToast('Shell Ejected', `Ejected a ${ejectedShell} shell`);
+                    }
+                    break;
+                    
+                case 'handcuffs':
+                    const opponent = gameState.players[1 - gameState.currentPlayer];
+                    opponent.isHandcuffed = true;
+                    gameState.lastAction = `${opponent.name} handcuffed`;
+                    showToast('Handcuffs Applied', `${opponent.name} will skip their next turn`);
+                    break;
+                    
+                case 'cigarettes':
+                    if (currentPlayer.health < 3) {
+                        currentPlayer.health++;
+                        gameState.lastAction = `${currentPlayer.name} healed 1 HP`;
+                        showToast('Health Restored', `${currentPlayer.name} gained 1 health`);
+                    }
+                    break;
+                    
+                case 'knife':
+                    gameState.knifeBonusActive = true;
+                    gameState.lastAction = `${currentPlayer.name} sharpened the knife`;
+                    showToast('Knife Ready', 'Next shot will deal double damage', 'danger');
+                    break;
+            }
+            
+            bonus.used = true;
+            renderGame();
+        }
+
+        // Shoot action
+        function shoot(target) {
+            if (gameState.currentShell >= gameState.shells.length) {
+                // Start new round if not final round
+                if (gameState.round < gameState.maxRounds) {
+                    startNewRound();
+                    showToast('New Round!', `Round ${gameState.round} starting...`);
+                } else {
+                    gameState.gamePhase = 'finished';
+                    gameState.winner = gameState.players.reduce((prev, curr) => prev.health > curr.health ? prev : curr);
+                    renderGame();
+                }
+                return;
+            }
+            
+            playSound();
+            
+            const shellType = gameState.shells[gameState.currentShell];
+            const damage = shellType === 'live' ? (gameState.knifeBonusActive ? 2 : 1) : 0;
+            
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const targetPlayer = target === 'self' ? currentPlayer : gameState.players[1 - gameState.currentPlayer];
+            
+            // Apply damage
+            if (damage > 0) {
+                targetPlayer.health = Math.max(0, targetPlayer.health - damage);
+                gameState.lastAction = `${targetPlayer.name} took ${damage} damage (${shellType})`;
+                
+                // Shake effect
+                document.body.classList.add('animate-shake');
+                setTimeout(() => document.body.classList.remove('animate-shake'), 500);
+            } else {
+                gameState.lastAction = `${shellType} shell - no damage`;
+            }
+            
+            // Move to next shell
+            gameState.currentShell++;
+            gameState.knifeBonusActive = false;
+            
+            // Check for winner
+            if (targetPlayer.health <= 0) {
+                gameState.gamePhase = 'finished';
+                gameState.winner = gameState.players.find(p => p.health > 0);
+                renderGame();
+                return;
+            }
+            
+            // Switch turns (unless shot self with blank, or target is handcuffed)
+            if (target === 'opponent' || shellType === 'live') {
+                const nextPlayer = 1 - gameState.currentPlayer;
+                const nextPlayerObj = gameState.players[nextPlayer];
+                
+                if (nextPlayerObj.isHandcuffed) {
+                    nextPlayerObj.isHandcuffed = false;
+                    // Stay with current player
+                } else {
+                    gameState.currentPlayer = nextPlayer;
+                }
+            }
+            
+            renderGame();
+        }
+
+        // Start new round
+        function startNewRound() {
+            gameState.round++;
+            gameState.currentShell = 0;
+            gameState.knifeBonusActive = false;
+            
+            // Generate new shells (more each round)
+            const baseShellCount = 3 + gameState.round;
+            const shellCount = Math.floor(Math.random() * 4) + baseShellCount;
+            const liveCount = Math.floor(Math.random() * (shellCount - 1)) + 1;
+            const blankCount = shellCount - liveCount;
+            
+            const shells = [
+                ...Array(liveCount).fill('live'),
+                ...Array(blankCount).fill('blank')
+            ];
+            
+            // Shuffle shells
+            for (let i = shells.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shells[i], shells[j]] = [shells[j], shells[i]];
+            }
+            
+            gameState.shells = shells;
+            
+            // Give new bonuses to players
+            gameState.players.forEach(player => {
+                player.isHandcuffed = false;
+                const bonusTypes = ['magnifying', 'beer', 'handcuffs', 'cigarettes', 'knife'];
+                const bonusCount = Math.min(Math.floor(Math.random() * 2) + 2 + Math.floor(gameState.round / 2), 5);
+                player.bonuses = [];
+                
+                for (let i = 0; i < bonusCount; i++) {
+                    const randomType = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
+                    player.bonuses.push({ type: randomType, used: false });
+                }
+            });
+            
+            renderGame();
+        }
+
+        // Restart game
+        function restartGame() {
+            if (tg) {
+                tg.close();
+            } else {
+                location.reload();
+            }
+        }
+
+        // Render game
+        function renderGame() {
+            const gameDiv = document.getElementById('game');
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const opponent = gameState.players[1 - gameState.currentPlayer];
+            const remainingShells = gameState.shells.slice(gameState.currentShell);
+            const liveCount = remainingShells.filter(s => s === 'live').length;
+            const blankCount = remainingShells.filter(s => s === 'blank').length;
+
+            if (gameState.gamePhase === 'finished') {
+                gameDiv.innerHTML = `
+                    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+                        <div class="card text-center" style="max-width: 400px;">
+                            <h1 class="font-creepster text-danger" style="font-size: 3rem; margin-bottom: 16px;">
+                                GAME OVER
+                            </h1>
+                            <p style="font-size: 1.5rem; margin-bottom: 24px;">
+                                ${gameState.winner?.name} WINS!
+                            </p>
+                            <button onclick="restartGame()" class="btn btn-danger" style="font-size: 1.2rem; padding: 16px 32px;">
+                                ${tg ? 'Close Game' : 'Play Again'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            gameDiv.innerHTML = `
+                <!-- Header -->
+                <div class="text-center mb-6">
+                    <h1 class="font-creepster text-danger animate-pulse-glow" style="font-size: 2.5rem; margin-bottom: 8px;">
+                        BUCKSHOT ROULETTE
+                    </h1>
+                    <p class="text-muted">
+                        ${currentPlayer.name}'s Turn
+                    </p>
+                </div>
+
+                <!-- Shell Info -->
+                <div class="card mb-6">
+                    <div class="text-center">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 8px;">Shells Remaining</h3>
+                        <div style="display: flex; justify-content: center; gap: 16px;">
+                            <span class="text-danger shell-count">🔴 ${liveCount} Live</span>
+                            <span class="text-muted shell-count">⚪ ${blankCount} Blank</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Players Health -->
+                <div class="grid-2 mb-6">
+                    ${gameState.players.map((player, index) => `
+                        <div class="card player-card ${index === gameState.currentPlayer ? 'player-active' : ''}">
+                            <h3 class="text-center mb-2" style="font-size: 1.1rem;">
+                                ${player.name}${player.isHandcuffed ? ' 🔒' : ''}
+                            </h3>
+                            <div style="display: flex; justify-content: center; gap: 4px;">
+                                ${Array.from({ length: 3 }, (_, i) => `
+                                    <span class="health-heart">
+                                        ${i < player.health ? '❤️' : '🖤'}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- Current Player Bonuses -->
+                <div class="card mb-6">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Your Items</h3>
+                    <div class="grid-3">
+                        ${currentPlayer.bonuses.map((bonus, index) => `
+                            <button 
+                                onclick="useBonus(${index})" 
+                                ${bonus.used ? 'disabled' : ''}
+                                class="btn ${bonus.used ? 'btn-secondary' : 'btn-item'}"
+                            >
+                                <span>${bonusInfo[bonus.type].icon}</span>
+                                <span style="font-size: 10px;">${bonusInfo[bonus.type].name}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid-2 mb-4">
+                    <button 
+                        onclick="shoot('self')" 
+                        class="btn btn-warning"
+                        ${gameState.currentShell >= gameState.shells.length ? 'disabled' : ''}
+                        style="font-size: 1.1rem; min-height: 80px;"
+                    >
+                        🔫 SHOOT SELF
+                    </button>
+                    <button 
+                        onclick="shoot('opponent')" 
+                        class="btn btn-danger"
+                        ${gameState.currentShell >= gameState.shells.length ? 'disabled' : ''}
+                        style="font-size: 1.1rem; min-height: 80px;"
+                    >
+                        🔫 SHOOT ${opponent.name.toUpperCase()}
+                    </button>
+                </div>
+
+                <!-- Last Action -->
+                ${gameState.lastAction ? `
+                    <div class="card text-center">
+                        <p class="text-muted" style="font-size: 0.9rem;">${gameState.lastAction}</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Initialize and start game
+        initGame();
+        renderGame();
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

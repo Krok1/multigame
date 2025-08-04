@@ -1,0 +1,14 @@
+2025-08-04 22:26:47,677 - __main__ - INFO - Webhook deleted successfully
+2025-08-04 22:26:47,716 - __main__ - INFO - Starting Unified Games Bot...
+2025-08-04 22:26:47,716 - __main__ - INFO - Available games: Buckshot Roulette, BlackJack
+2025-08-04 22:26:47,717 - aiogram.dispatcher - INFO - Start polling
+2025-08-04 22:26:47,746 - aiogram.dispatcher - INFO - Run polling for bot @CryptoDeckBot id=8311100323 - 'CryptoDeckBot'
+2025-08-04 22:27:42,531 - aiogram.event - INFO - Update id=168864766 is handled. Duration 187 ms by bot id=8311100323
+2025-08-04 22:27:44,172 - aiogram.event - INFO - Update id=168864767 is handled. Duration 106 ms by bot id=8311100323
+2025-08-04 22:27:44,875 - aiogram.event - INFO - Update id=168864768 is handled. Duration 162 ms by bot id=8311100323
+2025-08-04 22:27:53,334 - aiogram.event - INFO - Update id=168864769 is handled. Duration 93 ms by bot id=8311100323
+2025-08-04 22:27:54,984 - aiogram.event - INFO - Update id=168864770 is handled. Duration 79 ms by bot id=8311100323
+2025-08-04 22:27:56,844 - aiogram.event - INFO - Update id=168864771 is handled. Duration 286 ms by bot id=8311100323
+2025-08-04 22:31:03,425 - aiogram.dispatcher - WARNING - Received SIGINT signal
+2025-08-04 22:31:03,426 - aiogram.dispatcher - INFO - Polling stopped for bot @CryptoDeckBot id=8311100323 - 'CryptoDeckBot'
+2025-08-04 22:31:03,426 - aiogram.dispatcher - INFO - Polling stopped
